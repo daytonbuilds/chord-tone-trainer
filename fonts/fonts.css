@@ -1,0 +1,8 @@
+/* Self-hosted latin subsets (from Fontsource) so the app renders identically offline. */
+@font-face{font-family:Fraunces;font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fraunces-latin-opsz-normal.woff2) format('woff2-variations'),url(fraunces-latin-opsz-normal.woff2) format('woff2')}
+@font-face{font-family:Inter;font-style:normal;font-display:swap;font-weight:400;src:url(inter-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:Inter;font-style:normal;font-display:swap;font-weight:500;src:url(inter-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:Inter;font-style:normal;font-display:swap;font-weight:600;src:url(inter-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-display:swap;font-weight:500;src:url(jetbrains-mono-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-display:swap;font-weight:700;src:url(jetbrains-mono-latin-700-normal.woff2) format('woff2')}

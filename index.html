@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>1·3·5·7 Chord Tone Trainer</title>
+<meta name="description" content="Drill seventh-chord spelling, degrees, and ear recognition.">
+<meta name="theme-color" content="#15120f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chord Tones">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{
+  --bg:#15120f; --panel:#1e1a16; --line:#2e2822; --ink:#f3ece1; --mute:#9a8f81;
+  --amber:#e7a54b; --good:#71c08d; --bad:#e2705d; --ivory:#efe6d6; --ebony:#2a241e;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+body{display:flex;justify-content:center}
+#app{width:100%;max-width:520px;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 12px 0}
+header{display:flex;align-items:center;gap:10px;padding:14px 4px 8px}
+.brand{font-family:Fraunces,serif;font-weight:700;font-size:22px;letter-spacing:.02em}
+.brand span{color:var(--amber)}
+#hud{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--mute);text-align:right;line-height:1.35}
+#hud b{color:var(--ink)}
+.icon{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;width:38px;height:38px;font-size:18px}
+nav{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:999px;padding:8px 13px;font:500 13px Inter,sans-serif}
+.chip.on{background:var(--amber);border-color:var(--amber);color:#1a1209}
+#banner{background:#3a2a17;border:1px solid var(--amber);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:14px;margin:0 2px 6px;text-align:left;width:auto}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:0;gap:10px}
+#tag{font:700 11px "JetBrains Mono",monospace;letter-spacing:.08em;color:var(--amber);min-height:14px;text-transform:uppercase}
+#ctx{color:var(--mute);font-size:15px;min-height:20px}
+#prompt{font-family:Fraunces,serif;font-weight:500;font-size:clamp(52px,17vw,84px);line-height:1;letter-spacing:-.01em}
+#prompt .q{color:var(--amber)}
+#prompt small{font-size:.45em;color:var(--mute)}
+#slots{display:flex;gap:8px;margin-top:6px}
+.slot{width:62px;border:1px solid var(--line);border-radius:12px;padding:6px 0 8px;background:var(--panel)}
+.slot .d{font:700 11px "JetBrains Mono",monospace;color:var(--mute)}
+.slot .n{font:600 24px Fraunces,serif;min-height:30px}
+.slot .sub{font:500 11px Inter,sans-serif;color:var(--mute);min-height:14px}
+.slot.cur{border-color:var(--amber)}
+.slot.ok .n{color:var(--good)}
+.slot.fix{border-color:var(--bad)} .slot.fix .n{color:var(--bad);text-decoration:line-through;opacity:.8}
+.slot.fixed .n{color:var(--amber)}
+#fb{min-height:44px;font-size:15px;line-height:1.45;max-width:350px}
+#fb .ok{color:var(--good)} #fb .bad{color:var(--bad)} #fb .amb{color:var(--amber)}
+#fb .mono{font-family:"JetBrains Mono",monospace;color:var(--mute);font-size:13px}
+#actions{display:flex;gap:8px;min-height:44px;flex-wrap:wrap;justify-content:center}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;padding:11px 16px;font:600 15px Inter,sans-serif}
+.btn.primary{background:var(--amber);border-color:var(--amber);color:#1a1209}
+.btn.quiet{color:var(--mute)}
+#pad{padding:10px 0 calc(14px + env(safe-area-inset-bottom));display:grid;gap:6px}
+.row{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.key{height:50px;border-radius:10px;border:none;font:600 18px Fraunces,serif;touch-action:manipulation;transition:opacity .15s}
+.key.nat{background:var(--ivory);color:#1b1612;height:58px;font-size:22px}
+.key.acc{background:var(--ebony);color:var(--ink);border:1px solid #3a322a}
+.key:active{transform:translateY(1px);filter:brightness(.9)}
+#pad.fixing .key{opacity:.45}
+#pad.fixing .key.target{opacity:1;outline:3px solid var(--amber);outline-offset:1px}
+.key.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.ear{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ear .key{height:76px;font:700 30px "JetBrains Mono",monospace;background:var(--ivory);color:#1b1612}
+.ear .key.right{outline:4px solid var(--good);outline-offset:1px} .ear .key.wrong{outline:4px solid var(--bad);outline-offset:1px}
+#progress{flex:1;overflow-y:auto;padding-bottom:24px}
+#progress h3{font-family:Fraunces,serif;font-weight:500;margin:18px 0 6px;font-size:20px}
+#progress p{color:var(--mute);font-size:13px;margin:4px 0 10px;line-height:1.45}
+table{table-layout:fixed;border-collapse:separate;border-spacing:4px;width:100%}
+th{font:500 11px "JetBrains Mono",monospace;color:var(--mute)}
+td.r{font:600 15px Fraunces,serif;text-align:left;width:72px}
+td.c{height:34px;border-radius:7px;text-align:center;font:500 12px "JetBrains Mono",monospace;color:#15120f}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.panel{background:var(--panel);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));border-top:1px solid var(--line);max-height:90dvh;overflow-y:auto}
+.panel h4{margin:14px 0 8px;font:600 12px Inter,sans-serif;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.panel .chips{display:flex;gap:6px;flex-wrap:wrap}
+.panel .top{display:flex;justify-content:space-between;align-items:center}
+.panel .top b{font-family:Fraunces,serif;font-size:20px;font-weight:500}
+.note{color:var(--mute);font-size:12px;line-height:1.5;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">1<span>·</span>3<span>·</span>5<span>·</span>7</div>
+    <div id="hud"></div>
+    <button class="icon" id="gear" aria-label="Settings">⚙︎</button>
+  </header>
+  <nav id="modes"></nav>
+  <button id="banner" hidden></button>
+  <main id="stage">
+    <div id="tag"></div>
+    <div id="ctx"></div>
+    <div id="prompt"></div>
+    <div id="slots"></div>
+    <div id="fb"></div>
+    <div id="actions"></div>
+  </main>
+  <section id="progress" hidden></section>
+  <div id="pad"></div>
+</div>
+
+<div id="sheet" hidden>
+  <div class="panel">
+    <div class="top"><b>Settings</b><button class="btn" id="closeSheet">Done</button></div>
+    <h4>Chord qualities</h4>
+    <div class="chips" id="qualChips"></div>
+    <h4>Order (letter modes)</h4>
+    <div class="chips" id="orderChips"></div>
+    <h4>Sound</h4>
+    <div class="chips" id="soundChips"></div>
+    <div style="margin-top:8px"><button class="btn" id="testSound">Test sound</button></div>
+    <h4>Data</h4>
+    <button class="btn" id="resetBtn">Reset progress</button>
+    <div class="note">
+      <b>How misses work:</b> there is no time limit and you get one scored try. After a miss you see the answer and tap it yourself to continue, and that card comes back a few cards later. Use “Show me” when you don't know instead of guessing.<br><br>
+      Smart order favors cards you miss or answer slowly. Spelling is strict: F♯maj7 needs E♯, and an enharmonic answer like F counts as a miss.
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- theory ---------- */
+const LET=['C','D','E','F','G','A','B'], NAT=[0,2,4,5,7,9,11];
+const Q={
+  maj7:{iv:[0,4,7,11],sym:'maj7',label:'maj7'},
+  m7:{iv:[0,3,7,10],sym:'m7',label:'m7'},
+  dom7:{iv:[0,4,7,10],sym:'7',label:'7'},
+  m7b5:{iv:[0,3,6,10],sym:'m7♭5',label:'m7♭5'}
+};
+const DEG=[1,3,5,7];
+const CIRCLE=[0,5,10,3,8,1,6,11,4,9,2,7]; // C F B♭ E♭ A♭ D♭ G♭ B E A D G
+const norm=a=>((a+6)%12+12)%12-6;
+const pcOf=n=>((NAT[n.l]+n.a)%12+12)%12;
+const nm=n=>LET[n.l]+(n.a>0?'♯'.repeat(n.a):n.a<0?'♭'.repeat(-n.a):'');
+const same=(a,b)=>a.l===b.l&&a.a===b.a;
+function spell(root,q){
+  return Q[q].iv.map((iv,i)=>{const l=(root.l+2*i)%7;const t=(pcOf(root)+iv)%12;return {l,a:norm(t-NAT[l])}});
+}
+// root spelling: no double accidentals, fewest accidentals, lean flat like jazz charts
+function rootFor(pc,q){
+  const c=[];
+  for(let l=0;l<7;l++){const a=norm(pc-NAT[l]);if(Math.abs(a)<=1)c.push({l,a});}
+  const nat=c.find(x=>x.a===0); if(nat) return nat;
+  let best=null,bs=1e9;
+  for(const r of c){
+    const s=spell(r,q); if(s.some(n=>Math.abs(n.a)>1)) continue;
+    const score=s.reduce((t,n)=>t+Math.abs(n.a),0)+(r.a>0?1.05:0);
+    if(score<bs){bs=score;best=r}
+  }
+  return best;
+}
+const ROOTS={}; for(const q in Q) ROOTS[q]=CIRCLE.map(pc=>rootFor(pc,q));
+const chordName=(root,q)=>nm(root)+Q[q].sym;
+
+/* ---------- storage ---------- */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let settings=Object.assign({quals:['maj7'],order:'smart',sound:true,mode:'spell'},store.get('ct.settings',{}));
+let stats=store.get('ct.stats',{});
+const saveS=()=>store.set('ct.settings',settings), saveStats=()=>store.set('ct.stats',stats);
+function st(mode,key){return (stats[mode]||{})[key]}
+function record(mode,key,ok,ms){
+  stats[mode]=stats[mode]||{}; const s=stats[mode][key];
+  if(!s) stats[mode][key]={n:1,acc:ok?1:0,ms};
+  else{s.n++;s.acc=s.acc*.7+(ok?1:0)*.3;s.ms=s.ms*.7+ms*.3}
+  saveStats();
+}
+function weight(s){ if(!s) return 3; return 1+4*(1-s.acc)+Math.min(3,Math.max(0,(s.ms-1500)/1000)); }
+const kLetter=(q,root,d)=>q+'|'+nm(root)+'|'+d;
+const kEar=(q,d)=>q+'|'+d;
+
+/* ---------- audio: synthesize to a WAV clip, play through one <audio> element ----------
+   An HTML audio element is more reliable than Web Audio inside embedded pages and on iOS,
+   where Web Audio is often muted by the silent switch. */
+const SR=22050;
+let audioEl=null, audioURL=null, lastEvents=null, soundBlocked=false;
+function el(){
+  if(!audioEl){audioEl=document.createElement('audio');audioEl.setAttribute('playsinline','');audioEl.preload='auto';document.body.appendChild(audioEl)}
+  return audioEl;
+}
+function synth(events){
+  const end=Math.max(...events.map(e=>e.at+e.dur))+0.9, N=Math.ceil(end*SR), buf=new Float32Array(N);
+  for(const e of events){
+    const f=440*Math.pow(2,(e.m-69)/12), w=2*Math.PI*f/SR, s0=Math.floor(e.at*SR);
+    const len=Math.min(N-s0,Math.ceil((e.dur+0.9)*SR));
+    for(let i=0;i<len;i++){
+      const t=i/SR;
+      let env=t<0.006?t/0.006:(0.3+0.7*Math.exp(-(t-0.006)/0.14))*Math.exp(-t/2.2);
+      if(t>e.dur) env*=Math.exp(-(t-e.dur)/0.16);
+      const ph=w*i;
+      buf[s0+i]+=(Math.sin(ph)+0.22*Math.asin(Math.sin(ph))*0.6366+0.12*Math.sin(2*ph)+0.04*Math.sin(3*ph))*env*e.vel;
+    }
+  }
+  let peak=0; for(let i=0;i<N;i++){const a=Math.abs(buf[i]);if(a>peak)peak=a}
+  const g=peak>0.85?0.85/peak:1;
+  const ab=new ArrayBuffer(44+N*2), v=new DataView(ab), w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+  w(0,'RIFF');v.setUint32(4,36+N*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,SR,true);v.setUint32(28,SR*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,N*2,true);
+  for(let i=0;i<N;i++){const s=Math.max(-1,Math.min(1,buf[i]*g));v.setInt16(44+i*2,s<0?s*0x8000:s*0x7fff,true)}
+  return new Blob([ab],{type:'audio/wav'});
+}
+function playEvents(events){
+  lastEvents=events;
+  if(!settings.sound) return;
+  try{
+    const a=el(), old=audioURL;
+    audioURL=URL.createObjectURL(synth(events));
+    a.src=audioURL; a.currentTime=0;
+    const p=a.play();
+    if(p&&p.then) p.then(()=>setBlocked(false)).catch(err=>{if(!err||err.name!=='AbortError')setBlocked(true)}); // AbortError = interrupted by the next clip, not blocked
+    if(old) setTimeout(()=>URL.revokeObjectURL(old),500);
+  }catch(e){setBlocked(true)}
+}
+function setBlocked(b){
+  soundBlocked=b; const ban=$('banner');
+  ban.hidden=!b; if(b) ban.textContent='🔇 Sound was blocked. Tap here to play it. If it stays silent, turn up the media volume.';
+}
+const baseMidi=root=>48+pcOf(root);
+function chordEvents(root,q,at=0,dur=1.3){
+  const b=baseMidi(root); return [{m:b-12,at,dur,vel:.2}].concat(Q[q].iv.map(iv=>({m:b+iv,at,dur,vel:.16})));
+}
+// ear cue builders (deterministic given card so contrast playback can reuse them)
+function earDegEvents(root,q,d,oct){
+  const b=baseMidi(root); return chordEvents(root,q,0,1.2).concat([{m:b+Q[q].iv[d]+oct,at:1.5,dur:1.2,vel:.3}]);
+}
+function earTopEvents(root,q,d){
+  const b=baseMidi(root), iv=Q[q].iv, top=b+iv[d]+12, vc=[top];
+  [0,1,2,3].filter(j=>j!==d).forEach(j=>{let m=b+iv[j]+12;while(m>=top)m-=12;while(m<top-12)m+=12;vc.push(m)});
+  return [{m:b-12,at:0,dur:1.8,vel:.2}].concat(vc.map(m=>({m,at:0,dur:1.8,vel:m===top?.22:.13})));
+}
+
+/* ---------- state ---------- */
+const MODES=[
+  {id:'spell',label:'Spell'},{id:'degree',label:'Degree'},{id:'reverse',label:'Reverse'},
+  {id:'earDeg',label:'Ear · Degree'},{id:'earTop',label:'Ear · Top note'},{id:'progress',label:'Progress'}
+];
+const isEar=m=>m==='earDeg'||m==='earTop';
+let cur=null,last=null,seq=0,advanceTimer=null;
+let session={q:0,ok:0,streak:0,best:0};
+let relearn=[]; // {mode,unit,due}
+const $=id=>document.getElementById(id);
+
+function weightedPick(items,wf,keyf){
+  const pool=items.length>1?items.filter(x=>keyf(x)!==last):items;
+  const ws=pool.map(wf), tot=ws.reduce((a,b)=>a+b,0); let r=Math.random()*tot;
+  for(let i=0;i<pool.length;i++){r-=ws[i]; if(r<=0) return pool[i]}
+  return pool[pool.length-1];
+}
+function letterUnits(){const u=[];settings.quals.forEach(q=>ROOTS[q].forEach(root=>u.push({q,root})));return u}
+function unitKey(mode,u){return mode==='spell'?u.q+nm(u.root):isEar(mode)?kEar(u.q,u.d):kLetter(u.q,u.root,u.d)}
+
+function pickUnit(mode){
+  // 1) a missed card that is due again
+  const i=relearn.findIndex(r=>r.mode===mode&&r.due<=session.q&&settings.quals.includes(r.unit.q));
+  if(i>=0){const r=relearn.splice(i,1)[0];return {...r.unit,review:true}}
+  if(mode==='spell'){
+    const units=letterUnits();
+    return settings.order==='circle'?units[seq++%units.length]
+      :weightedPick(units,x=>[1,2,3].reduce((t,d)=>t+weight(st('spell',kLetter(x.q,x.root,d))),0)/3,x=>unitKey(mode,x));
+  }
+  if(mode==='degree'||mode==='reverse'){
+    if(settings.order==='circle'){const units=letterUnits();return {...units[seq++%units.length],d:1+Math.floor(Math.random()*3)}}
+    const items=[];letterUnits().forEach(x=>[1,2,3].forEach(d=>items.push({...x,d})));
+    return weightedPick(items,x=>weight(st(mode,kLetter(x.q,x.root,x.d))),x=>unitKey(mode,x));
+  }
+  const items=[];settings.quals.forEach(q=>[0,1,2,3].forEach(d=>items.push({q,d})));
+  const u=weightedPick(items,x=>weight(st(mode,kEar(x.q,x.d))),x=>unitKey(mode,x));
+  return {...u,root:ROOTS[u.q][Math.floor(Math.random()*12)],oct:Math.random()<.5?12:0};
+}
+function requeue(){
+  if(relearn.some(r=>r.mode===cur.mode&&unitKey(cur.mode,r.unit)===unitKey(cur.mode,cur))) return;
+  relearn.push({mode:cur.mode,unit:{q:cur.q,root:cur.root,d:cur.d,oct:cur.oct},due:session.q+3+Math.floor(Math.random()*2)});
+}
+
+function nextQuestion(){
+  clearTimeout(advanceTimer);
+  const mode=settings.mode;
+  if(mode==='progress'){renderProgress();return}
+  const u=pickUnit(mode);
+  cur={mode,q:u.q,root:u.root,d:u.d,oct:u.oct,review:!!u.review,phase:'ask',slot:1,marks:[],missed:false,t0:performance.now()};
+  cur.ans=spell(cur.root,cur.q);
+  last=unitKey(mode,cur);
+  if(isEar(mode)){
+    cur.events=mode==='earDeg'?earDegEvents(cur.root,cur.q,cur.d,cur.oct):earTopEvents(cur.root,cur.q,cur.d);
+    cur.delay=mode==='earDeg'?1500:0;
+  }
+  render();
+  if(cur.events){playEvents(cur.events); cur.t0=performance.now()+cur.delay}
+}
+
+/* ---------- answering ---------- */
+function elapsed(){return Math.min(15000,Math.max(0,performance.now()-cur.t0))}
+function targetNote(){return cur.mode==='spell'?cur.ans[cur.slot]:cur.mode==='degree'?cur.ans[cur.d]:cur.root}
+function statKey(){return kLetter(cur.q,cur.root,cur.mode==='spell'?cur.slot:cur.d)}
+
+function onNote(n,btn){
+  if(!cur||isEar(cur.mode)||cur.phase==='done') return;
+  const target=targetNote();
+  if(cur.phase==='fix'){
+    if(same(n,target)){
+      if(cur.mode==='spell'){cur.marks[cur.slot].fixed=true;advanceSlot()}
+      else complete();
+    }else if(btn){btn.classList.remove('shake');void btn.offsetWidth;btn.classList.add('shake')}
+    return;
+  }
+  const ok=same(n,target);
+  record(cur.mode,statKey(),ok,elapsed());
+  if(cur.mode==='spell') cur.marks[cur.slot]={n,ok};
+  if(ok){ if(cur.mode==='spell') advanceSlot(); else {cur.ms=elapsed();complete()} return }
+  miss(n,target);
+}
+function reveal(){ // "Show me": counts as a miss, then go straight to correction
+  if(!cur||cur.phase!=='ask') return;
+  if(isEar(cur.mode)){onDegree(-1);return}
+  record(cur.mode,statKey(),false,elapsed());
+  if(cur.mode==='spell') cur.marks[cur.slot]={n:null,ok:false};
+  miss(null,targetNote());
+}
+function miss(n,target){
+  cur.missed=true;
+  const what=cur.mode==='reverse'?`The root is <b>${nm(target)}</b>`:`The ${DEG[cur.mode==='spell'?cur.slot:cur.d]} is <b>${nm(target)}</b>`;
+  cur.msg=n==null?`${what}.`
+    :pcOf(n)===pcOf(target)?`Right pitch, wrong spelling. ${what}, not ${nm(n)}. ${explainSpelling(target)}`
+    :`You chose ${nm(n)}. ${what}.`;
+  if(cur.mode==='spell'){cur.phase='fix';(cur.notes=cur.notes||[]).push(cur.msg);cur.msg+=` Tap it to continue.`;render()}
+  else complete();
+}
+function explainSpelling(target){
+  if(cur.mode==='reverse') return `Here the root is spelled ${nm(target)}.`;
+  const d=cur.mode==='spell'?cur.slot:cur.d;
+  const letterSteps=['root','3rd','5th','7th'][d];
+  return `The ${letterSteps} of ${nm(cur.root)} must use the letter ${LET[(cur.root.l+2*d)%7]}.`;
+}
+function advanceSlot(){
+  cur.phase='ask'; cur.msg='';
+  cur.slot++; cur.t0=performance.now();
+  if(cur.slot>3) complete(); else render();
+}
+function complete(){
+  cur.phase='done';
+  session.q++;
+  if(!cur.missed){session.ok++;session.streak++;session.best=Math.max(session.best,session.streak)}
+  else{session.streak=0;requeue()}
+  playEvents(chordEvents(cur.root,cur.q,0,1.4));
+  render();
+  if(!cur.missed) advanceTimer=setTimeout(nextQuestion,1000); // after a miss, wait for Next
+}
+function onDegree(i){
+  if(!cur||!isEar(cur.mode)||cur.phase!=='ask') return;
+  const ok=i===cur.d;
+  record(cur.mode,kEar(cur.q,cur.d),ok,elapsed());
+  cur.ms=elapsed(); cur.given=i; cur.phase='done'; cur.missed=!ok;
+  session.q++;
+  if(ok){session.ok++;session.streak++;session.best=Math.max(session.best,session.streak);
+    render(); advanceTimer=setTimeout(nextQuestion,1600);}
+  else{session.streak=0;requeue();render();
+    // contrast: replay the cue with the correct answer
+    playEvents(cur.events);}
+}
+function contrastEvents(d){
+  return cur.mode==='earDeg'?earDegEvents(cur.root,cur.q,d,cur.oct):earTopEvents(cur.root,cur.q,d);
+}
+
+/* ---------- render ---------- */
+function hud(){
+  const pct=session.q?Math.round(100*session.ok/session.q):0;
+  $('hud').innerHTML=`streak <b>${session.streak}</b> · best <b>${session.best}</b><br>${session.ok}/${session.q} first try · <b>${pct}%</b>`;
+}
+function renderModes(){
+  $('modes').innerHTML=MODES.map(m=>`<button class="chip${settings.mode===m.id?' on':''}" data-m="${m.id}">${m.label}</button>`).join('');
+}
+function renderSlots(){
+  if(cur.mode!=='spell'){$('slots').innerHTML='';return}
+  $('slots').innerHTML=DEG.map((d,i)=>{
+    if(i===0) return `<div class="slot"><div class="d">${d}</div><div class="n">${nm(cur.root)}</div><div class="sub">given</div></div>`;
+    const m=cur.marks[i]; let cls='',n='',sub='';
+    if(m&&m.ok){cls='ok';n=nm(m.n)}
+    else if(m&&m.fixed){cls='fixed';n=nm(cur.ans[i]);sub='corrected'}
+    else if(m){cls='fix';n=m.n?nm(m.n):'?';sub='→ '+nm(cur.ans[i])}
+    else if(i===cur.slot&&cur.phase!=='done') cls='cur';
+    return `<div class="slot ${cls}"><div class="d">${d}</div><div class="n">${n}</div><div class="sub">${sub}</div></div>`;
+  }).join('');
+}
+function render(){
+  hud(); renderModes();
+  const prog=settings.mode==='progress';
+  $('stage').hidden=prog; $('progress').hidden=!prog;
+  if(prog) return;
+  const c=cur, cn=chordName(c.root,c.q), full=c.ans.map(nm).join(' ');
+  let ctxT='',prompt='',fb='',acts='';
+  const time=c.ms!=null?` · ${(c.ms/1000).toFixed(1)}s`:'';
+  if(c.mode==='spell'){
+    ctxT='Spell 1 · 3 · 5 · 7'; prompt=cn;
+  }else if(c.mode==='degree'){
+    ctxT=`What is the ${DEG[c.d]} of`; prompt=cn;
+  }else if(c.mode==='reverse'){
+    ctxT=`${nm(c.ans[c.d])} is the ${DEG[c.d]} of`;
+    prompt=c.phase==='done'?cn:`<span class="q">?</span>${Q[c.q].sym}`;
+  }
+  if(!isEar(c.mode)){
+    if(c.phase==='fix') fb=`<span class="bad">${c.msg}</span>`;
+    if(c.phase==='done') fb=(c.missed
+      ?(c.mode==='spell'?`<span class="bad">${(c.notes||[]).join('<br>')}</span><br>`:`<span class="bad">${c.msg}</span>`)+` <span class="amb">This one comes back in a few cards.</span>`
+      :`<span class="ok">Correct${c.mode==='spell'?'':time}</span>`)+`<br><span class="mono">${cn} = ${full}</span>`;
+    if(c.phase==='ask') acts=`<button class="btn quiet" id="reveal">Show me</button>`;
+    if(c.phase==='done') acts=`<button class="btn" id="hear">Hear chord</button>`+(c.missed?`<button class="btn primary" id="next">Next</button>`:'');
+  }else{
+    ctxT=c.mode==='earDeg'?'Chord, then a note. Which degree?':'Which chord tone is on top?';
+    prompt=c.phase==='done'?`${DEG[c.d]}<small> · ${nm(c.ans[c.d])}</small>`:`<span class="q">?</span>`;
+    if(c.phase==='ask') acts=`<button class="btn" id="replay">Replay</button>${c.mode==='earDeg'?'<button class="btn" id="hearRef">Chord only</button>':''}<button class="btn quiet" id="reveal">Show me</button>`;
+    if(c.phase==='done'){
+      if(!c.missed){fb=`<span class="ok">Yes, the ${DEG[c.d]}${time}</span><br><span class="mono">${cn} = ${full}</span>`}
+      else{
+        fb=`<span class="bad">${c.given>=0?`You heard the ${DEG[c.given]}. `:''}It was the <b>${DEG[c.d]}</b>.</span> Compare them, then move on.<br><span class="mono">${cn} = ${full}</span>`;
+        acts=`<button class="btn" data-hear="${c.d}">Hear ${DEG[c.d]} (answer)</button>`+(c.given>=0?`<button class="btn" data-hear="${c.given}">Hear ${DEG[c.given]} (yours)</button>`:'')+`<button class="btn primary" id="next">Next</button>`;
+      }
+    }
+  }
+  $('tag').textContent=c.review?'Review · missed earlier':'';
+  $('ctx').innerHTML=ctxT; $('prompt').innerHTML=prompt; $('fb').innerHTML=fb; $('actions').innerHTML=acts;
+  renderSlots(); renderPad();
+}
+let padMode=null;
+function renderPad(){
+  const want=settings.mode==='progress'?'none':isEar(settings.mode)?'ear':'letters';
+  if(want!==padMode){
+    padMode=want;
+    if(want==='none') $('pad').innerHTML='';
+    else if(want==='ear') $('pad').innerHTML=`<div class="ear">${DEG.map((d,i)=>`<button class="key" data-deg="${i}">${d}</button>`).join('')}</div>`;
+    else{const row=(a,cls)=>`<div class="row">${LET.map((L,l)=>`<button class="key ${cls}" data-l="${l}" data-a="${a}">${nm({l,a})}</button>`).join('')}</div>`;
+      $('pad').innerHTML=row(1,'acc')+row(0,'nat')+row(-1,'acc');}
+  }
+  const pad=$('pad'); if(!cur) return;
+  const showTarget=want==='letters'&&(cur.phase==='fix'||(cur.phase==='done'&&cur.missed&&cur.mode!=='spell'));
+  pad.classList.toggle('fixing',showTarget);
+  pad.querySelectorAll('.key').forEach(k=>k.classList.remove('target','right','wrong'));
+  if(showTarget){
+    const t=targetNote(); const k=pad.querySelector(`[data-l="${t.l}"][data-a="${t.a}"]`); if(k) k.classList.add('target');
+  }
+  if(want==='ear'&&cur.phase==='done'){
+    pad.querySelector(`[data-deg="${cur.d}"]`).classList.add('right');
+    if(cur.missed&&cur.given>=0) pad.querySelector(`[data-deg="${cur.given}"]`).classList.add('wrong');
+  }
+}
+function cellColor(s){
+  if(!s) return '#2e2822';
+  if(s.acc>=.9&&s.ms<2000) return '#71c08d';
+  if(s.acc>=.7&&s.ms<4000) return '#e7a54b';
+  return '#e2705d';
+}
+function merged(q,root,d){
+  let n=0,acc=0,ms=0;
+  ['spell','degree','reverse'].forEach(m=>{const s=st(m,kLetter(q,root,d));if(s){n+=s.n;acc+=s.acc*s.n;ms+=s.ms*s.n}});
+  return n?{n,acc:acc/n,ms:ms/n}:null;
+}
+function renderProgress(){
+  hud(); renderModes(); $('stage').hidden=true; $('progress').hidden=false; renderPad();
+  let h=`<p>Letter modes combined (Spell, Degree, Reverse), first-try answers only. Each cell shows recent average response time in seconds. Roots run around the circle of fourths.</p>
+  <div class="legend"><span><i style="background:#71c08d"></i>fluent (≥90%, &lt;2s)</span><span><i style="background:#e7a54b"></i>getting there</span><span><i style="background:#e2705d"></i>needs work</span><span><i style="background:#2e2822"></i>unseen</span></div>`;
+  const qs=Object.keys(Q).filter(q=>settings.quals.includes(q)||ROOTS[q].some(r=>[1,2,3].some(d=>merged(q,r,d))));
+  qs.forEach(q=>{
+    h+=`<h3>${Q[q].label}</h3><table><tr><th style="width:72px"></th><th>3</th><th>5</th><th>7</th></tr>`;
+    ROOTS[q].forEach(r=>{
+      h+=`<tr><td class="r">${chordName(r,q)}</td>`+[1,2,3].map(d=>{const s=merged(q,r,d);return `<td class="c" style="background:${cellColor(s)}">${s?(s.ms/1000).toFixed(1):''}</td>`}).join('')+'</tr>';
+    });
+    h+='</table>';
+  });
+  h+=`<h3>Ear training</h3><p>Recent first-try accuracy per degree, all keys combined.</p>`;
+  [['earDeg','Degree'],['earTop','Top note']].forEach(([m,label])=>{
+    h+=`<table><tr><th style="text-align:left;width:72px">${label}</th>${DEG.map(d=>`<th>${d}</th>`).join('')}</tr>`;
+    Object.keys(Q).forEach(q=>{
+      const row=[0,1,2,3].map(d=>st(m,kEar(q,d)));
+      if(!settings.quals.includes(q)&&!row.some(Boolean)) return;
+      h+=`<tr><td class="r">${Q[q].label}</td>`+row.map(s=>`<td class="c" style="background:${s?(s.acc>=.9?'#71c08d':s.acc>=.7?'#e7a54b':'#e2705d'):'#2e2822'}">${s?Math.round(s.acc*100)+'%':''}</td>`).join('')+'</tr>';
+    });
+    h+='</table>';
+  });
+  $('progress').innerHTML=h;
+}
+
+/* ---------- settings sheet ---------- */
+function renderSheet(){
+  $('qualChips').innerHTML=Object.keys(Q).map(q=>`<button class="chip${settings.quals.includes(q)?' on':''}" data-q="${q}">${Q[q].label}</button>`).join('');
+  $('orderChips').innerHTML=[['smart','Smart'],['circle','Circle of 4ths']].map(([v,l])=>`<button class="chip${settings.order===v?' on':''}" data-o="${v}">${l}</button>`).join('');
+  $('soundChips').innerHTML=[[true,'On'],[false,'Off']].map(([v,l])=>`<button class="chip${settings.sound===v?' on':''}" data-s="${v}">${l}</button>`).join('');
+}
+let resetArmed=false;
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.m){ settings.mode=b.dataset.m; saveS(); seq=0; nextQuestion(); return }
+  if(b.dataset.l!==undefined){ onNote({l:+b.dataset.l,a:+b.dataset.a},b); return }
+  if(b.dataset.deg!==undefined){ onDegree(+b.dataset.deg); return }
+  if(b.dataset.hear!==undefined){ playEvents(contrastEvents(+b.dataset.hear)); return }
+  if(b.dataset.q){ const q=b.dataset.q, on=settings.quals.includes(q);
+    if(on&&settings.quals.length===1) return;
+    settings.quals=on?settings.quals.filter(x=>x!==q):Object.keys(Q).filter(x=>x===q||settings.quals.includes(x));
+    saveS(); renderSheet(); return }
+  if(b.dataset.o){ settings.order=b.dataset.o; seq=0; saveS(); renderSheet(); return }
+  if(b.dataset.s){ settings.sound=b.dataset.s==='true'; saveS(); renderSheet(); if(!settings.sound) setBlocked(false); return }
+  switch(b.id){
+    case 'gear': resetArmed=false; $('resetBtn').textContent='Reset progress'; renderSheet(); $('sheet').hidden=false; break;
+    case 'closeSheet': $('sheet').hidden=true; nextQuestion(); break;
+    case 'testSound': playEvents([{m:60,at:0,dur:.5,vel:.3},{m:64,at:.25,dur:.5,vel:.3},{m:67,at:.5,dur:.5,vel:.3},{m:71,at:.75,dur:1,vel:.3}]); break;
+    case 'resetBtn':
+      if(!resetArmed){resetArmed=true;b.textContent='Tap again to erase all progress'}
+      else{stats={};relearn=[];saveStats();resetArmed=false;b.textContent='Progress erased'}
+      break;
+    case 'banner': if(lastEvents) playEvents(lastEvents); break;
+    case 'next': nextQuestion(); break;
+    case 'reveal': reveal(); break;
+    case 'hear': playEvents(chordEvents(cur.root,cur.q,0,1.4)); break;
+    case 'replay': playEvents(cur.events); if(cur.phase==='ask') cur.t0=performance.now()+cur.delay; break;
+    case 'hearRef': playEvents(chordEvents(cur.root,cur.q,0,1.3)); break;
+  }
+});
+$('sheet').addEventListener('click',e=>{if(e.target.id==='sheet'){$('sheet').hidden=true;nextQuestion()}});
+// desktop: letters a-g (shift = sharp, alt = flat); ear modes 1/3/5/7; space/enter = next
+document.addEventListener('keydown',e=>{
+  if(!$('sheet').hidden||!cur) return;
+  const k=e.key.toLowerCase();
+  if(cur.phase==='done'&&(k===' '||k==='enter')){nextQuestion();e.preventDefault();return}
+  if(isEar(settings.mode)){const i=['1','3','5','7'].indexOf(k);if(i>=0)onDegree(i);return}
+  if(e.code&&e.code.startsWith('Key')){const l='cdefgab'.indexOf(e.code.slice(3).toLowerCase());if(l>=0)onNote({l,a:e.shiftKey?1:e.altKey?-1:0})}
+});
+
+if(!settings.quals.length) settings.quals=['maj7'];
+// first question waits for a tap so its sound has a user gesture behind it
+if(isEar(settings.mode)){
+  cur=null; hud(); renderModes(); renderPad();
+  $('ctx').textContent='Ear training uses sound.'; $('actions').innerHTML='<button class="btn primary" id="start">Tap to start</button>';
+  document.addEventListener('click',function s(e){if(e.target.id==='start'){document.removeEventListener('click',s);nextQuestion()}});
+}else nextQuestion();
+
+/* ---------- offline / install ---------- */
+// Progress lives in localStorage on this origin; ask the browser not to evict it under storage pressure.
+if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
